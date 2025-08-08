@@ -11,7 +11,7 @@ from app.schemas.recommendation import Recommendation
 
 
 def get_recommendations(db: Session, limit: int = 10) -> list[Recommendation]:
-    date_range = datetime.datetime.utcnow() - datetime.timedelta(days=30)
+    cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=30)
 
     # Get reviews filtered by location_id, category_id, and date range
     last_reviews_subquery = (
@@ -46,7 +46,7 @@ def get_recommendations(db: Session, limit: int = 10) -> list[Recommendation]:
         .where(
             or_(
                 last_reviews_subquery.c.last_reviewed_at.is_(None),
-                last_reviews_subquery.c.last_reviewed_at < date_range,
+                last_reviews_subquery.c.last_reviewed_at < cutoff,
             )
         )
         .order_by(
