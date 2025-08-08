@@ -12,7 +12,7 @@ def create_location(db: Session, location: LocationCreate):
     location_exists = db.query(LocationModel).filter(
         LocationModel.longitude == location.longitude,
         LocationModel.latitude == location.latitude
-    ).exists()
+    ).first()
 
     if location_exists:
         raise_location_exists()
