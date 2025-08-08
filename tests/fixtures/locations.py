@@ -24,15 +24,15 @@ def payload_locations(fake):
     return factory
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def setup_locations(db_session, payload_locations):
-    locations = payload_locations(2)
+    locations = payload_locations(3)
     inserted_ids = []
 
     for location in locations:
         db_session.execute(
             text("INSERT INTO locations (latitude, longitude) VALUES (:latitude, :longitude)"),
-            {"latitude": location.get("latitude"), "longitude": location.get("latitude")}
+            location
         )
         row = db_session.execute(text("SELECT last_insert_rowid()")).scalar_one()
         inserted_ids.append(row)

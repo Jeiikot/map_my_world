@@ -18,15 +18,15 @@ def payload_categories(fake):
     return factory
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def setup_categories(db_session, fake, payload_categories):
-    categories = payload_categories(2)
+    categories = payload_categories(3)
     inserted_ids = []
 
     for category in categories:
         db_session.execute(
             text("INSERT INTO categories (name) VALUES (:name)"),
-            {"name": category.get("name")}
+            category
         )
         row = db_session.execute(text("SELECT last_insert_rowid()")).scalar_one()
         inserted_ids.append(row)
