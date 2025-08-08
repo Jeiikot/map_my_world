@@ -6,11 +6,6 @@ from fastapi import status
 from tests.fixtures.database import client
 
 
-@pytest.fixture()
-def payload_category(fake):
-    return {"name": fake.word()}
-
-
 @pytest.mark.usefixtures("client", "payload_category")
 class TestCategories:
 
