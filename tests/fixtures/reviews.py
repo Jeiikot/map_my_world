@@ -3,7 +3,9 @@ import datetime
 
 # Third-party imports
 import pytest
-from sqlalchemy import text
+
+# Local imports
+from app.models.review import ReviewModel
 
 
 @pytest.fixture()
@@ -18,60 +20,56 @@ def payload_review(fake, setup_locations, setup_categories):
     }
     return payload
 
-@pytest.fixture()
-def get_recent_review_at(fake):
-    random_dt = fake.date_time_between(start_date="-29d", end_date="now", tzinfo=datetime.timezone.utc)
-    return random_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 @pytest.fixture()
-def get_old_review_at(fake):
-    random_dt = fake.date_time_between(start_date="-2y", end_date="-30d", tzinfo=datetime.timezone.utc)
-    return random_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+def recent_review_dt(fake):
+    return fake.date_time_between(start_date="-29d", end_date="now", tzinfo=datetime.timezone.utc)
+
 
 @pytest.fixture()
-def payload_recent_reviews(setup_locations, setup_categories, get_recent_review_at):
+def old_review_dt(fake):
+    return fake.date_time_between(start_date="-2y", end_date="-30d", tzinfo=datetime.timezone.utc)
+
+
+@pytest.fixture()
+def payload_recent_reviews(setup_locations, setup_categories, recent_review_dt):
     def factory(count: int):
+        pairs_count = min(count, len(setup_locations), len(setup_categories))
         return [
             {
-                "location_id": setup_locations[index],
-                "category_id": setup_categories[index],
-                "reviewed_at": get_recent_review_at,
+                "location_id": location_id,
+                "category_id": category_id,
+                "reviewed_at": recent_review_dt,
             }
-            for index in range(count)
-        ]
-    return factory
-
-@pytest.fixture()
-def payload_old_reviews(setup_locations, setup_categories, get_old_review_at):
-    def factory(count: int):
-        return [
-            {
-                "location_id": setup_locations[index + 1],
-                "category_id": setup_categories[index + 1],
-                "reviewed_at": get_old_review_at,
-            }
-            for index in range(count)
+            for location_id, category_id in zip(setup_locations[:pairs_count], setup_categories[:pairs_count])
         ]
     return factory
 
 
 @pytest.fixture()
-def setup_reviews(db_session, fake, payload_old_reviews, payload_recent_reviews):
-    old_reviews = payload_old_reviews(1)
-    recent_reviews = payload_recent_reviews(1)
-    all_reviews = old_reviews + recent_reviews
+def payload_old_reviews(setup_locations, setup_categories, old_review_dt):
+    def factory(count: int):
+        shifted_categories = setup_categories[1:] + setup_categories[:1]
+        pairs_count = min(count, len(setup_locations), len(shifted_categories))
+        return [
+            {
+                "location_id": location_id,
+                "category_id": category_id,
+                "reviewed_at": old_review_dt,
+            }
+            for location_id, category_id in zip(setup_locations[:pairs_count], shifted_categories[:pairs_count])
+        ]
+    return factory
 
-    inserted_ids = []
 
-    for review in all_reviews:
-        db_session.execute(
-            text(
-                "INSERT INTO location_category_reviewed (location_id, category_id, reviewed_at) "
-                "VALUES (:location_id, :category_id, :reviewed_at)"
-            ),
-            review
-        )
-        row = db_session.execute(text("SELECT last_insert_rowid()")).scalar_one()
-        inserted_ids.append(row)
+@pytest.fixture()
+def setup_reviews(db_session, payload_old_reviews, payload_recent_reviews):
+    payload_reviews = payload_old_reviews(1) + payload_recent_reviews(1)
 
+    reviews = [ReviewModel(**row) for row in payload_reviews]
+    db_session.add_all(reviews)
+    db_session.flush()
+    review_ids = [review.id for review in reviews]
     db_session.commit()
+
+    return review_ids

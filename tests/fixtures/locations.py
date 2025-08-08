@@ -1,6 +1,8 @@
 # Third-party imports
 import pytest
-from sqlalchemy import text
+
+# Local imports
+from app.models.location import LocationModel
 
 
 @pytest.fixture()
@@ -26,16 +28,12 @@ def payload_locations(fake):
 
 @pytest.fixture()
 def setup_locations(db_session, payload_locations):
-    locations = payload_locations(3)
-    inserted_ids = []
+    payload_locations = payload_locations(3)
 
-    for location in locations:
-        db_session.execute(
-            text("INSERT INTO locations (latitude, longitude) VALUES (:latitude, :longitude)"),
-            location
-        )
-        row = db_session.execute(text("SELECT last_insert_rowid()")).scalar_one()
-        inserted_ids.append(row)
+    locations = [LocationModel(**data) for data in payload_locations]
+    db_session.add_all(locations)
+    db_session.flush()
+    location_ids = [location.id for location in locations]
 
     db_session.commit()
-    return inserted_ids
+    return location_ids
