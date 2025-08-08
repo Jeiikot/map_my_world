@@ -2,6 +2,8 @@
 import pytest
 from sqlalchemy import text
 
+from app.models import CategoryModel
+
 
 @pytest.fixture()
 def payload_category(fake):
@@ -20,16 +22,12 @@ def payload_categories(fake):
 
 @pytest.fixture()
 def setup_categories(db_session, fake, payload_categories):
-    categories = payload_categories(3)
-    inserted_ids = []
+    payload_categories = payload_categories(3)
 
-    for category in categories:
-        db_session.execute(
-            text("INSERT INTO categories (name) VALUES (:name)"),
-            category
-        )
-        row = db_session.execute(text("SELECT last_insert_rowid()")).scalar_one()
-        inserted_ids.append(row)
+    categories = [CategoryModel(**data) for data in payload_categories]
+    db_session.add_all(categories)
+    db_session.flush()
+    category_ids = [category.id for category in categories]
 
     db_session.commit()
-    return inserted_ids
+    return category_ids
