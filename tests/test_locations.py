@@ -1,7 +1,5 @@
 # Third-party imports
 from fastapi import status
-
-# Third-party imports
 import pytest
 
 # Local imports
@@ -35,11 +33,13 @@ class TestLocations:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert any(
-            location["latitude"] == pytest.approx(payload_location["latitude"]) and
-            location["longitude"] == pytest.approx(payload_location["longitude"])
+            location["latitude"] == pytest.approx(payload_location.get("latitude")) and
+            location["longitude"] == pytest.approx(payload_location.get("longitude"))
             for location in data
         )
     def test_create_location_conflict(self, client, payload_location):
-        client.post("/locations/", json=payload_location)
+        response = client.post("/locations/", json=payload_location)
+        assert response.status_code == status.HTTP_201_CREATED
+
         response = client.post("/locations/", json=payload_location)
         assert response.status_code ==  status.HTTP_409_CONFLICT
