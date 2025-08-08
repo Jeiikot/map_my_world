@@ -1,6 +1,16 @@
 # Map My World API
 
-A simple REST API to manage locations, categories, and reviews—and to recommend up to 10 location–category pairs not reviewed in the last 30 days.
+Map My World is a backend API for exploring and reviewing locations and categories worldwide. It includes a special recommendations feature to keep results fresh and relevant, as described in the technical challenge requirements.
+
+---
+
+## Technical decisions
+
+- **Architecture:** FastAPI app structured into routers, CRUD services, models, and schemas.
+- **Database:** SQLAlchemy ORM with Pydantic models for validation.
+- **Recommendations:** Single SQL query with subquery + CROSS JOIN for efficiency.
+- **Testing:** pytest suite with isolated in-memory SQLite database.
+- **Data integrity:** Unique constraints on coordinates and category names, range validation for latitude/longitude.
 
 ---
 

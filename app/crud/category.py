@@ -29,5 +29,5 @@ def create_category(db: Session, category: CategoryCreate):
     db.refresh(db_category)
     return db_category
 
-def get_categories(db: Session, skip: int = 0, limit: int = 100):
+def get_categories(db: Session, skip: int = 0, limit: int = 20):
     return db.query(CategoryModel).offset(skip).limit(limit).all()
