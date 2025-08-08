@@ -6,15 +6,6 @@ import pytest
 from tests.fixtures.database import client
 
 
-@pytest.fixture()
-def payload_location(fake):
-    payload = {
-        "latitude": fake.pyfloat(min_value=-90, max_value=90),
-        "longitude": fake.pyfloat(min_value=-180, max_value=180)
-    }
-    return payload
-
-
 @pytest.mark.usefixtures("client", "payload_location")
 class TestLocations:
 
