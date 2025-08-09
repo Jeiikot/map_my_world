@@ -22,6 +22,18 @@ Map My World is a backend API for exploring and reviewing locations and categori
 
 ---
 
+## Live Demo
+
+The API is deployed and accessible here:
+
+- **Base URL:** https://map-my-world-kmsy.onrender.com
+- **Swagger UI:** https://map-my-world-kmsy.onrender.com/docs
+- **ReDoc:** https://map-my-world-kmsy.onrender.com/redoc
+
+> Note: The API uses SQLite for persistence on Render. The database resets when the service is restarted.
+
+
+---
 ## Installation
 
 1. Clone the repository:
